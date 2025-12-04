@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>📊 数据分析仪表板 <span id="appName" style="font-size: 18px; color: #667eea;"></span></h1>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEvents">-</div>
+                    <div class="stat-label">总事件数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalUsers">-</div>
+                    <div class="stat-label">总用户数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSessions">-</div>
+                    <div class="stat-label">总会话数</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('overview')">📈 概览</button>
+            <button class="tab-btn" onclick="switchTab('events')">📋 事件列表</button>
+            <button class="tab-btn" onclick="switchTab('journey')">👤 用户旅程</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview-tab" class="tab-content active">
+            <div class="dashboard-grid">
+                <!-- Event Types Chart -->
+                <div class="card">
+                    <h2>事件类型分布</h2>
+                    <canvas id="eventTypesChart"></canvas>
+                </div>
+
+                <!-- Top Pages -->
+                <div class="card">
+                    <h2>热门页面</h2>
+                    <div id="topPages" class="list-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div id="events-tab" class="tab-content">
+            <div class="card">
+                <h2>最近事件</h2>
+
+                <!-- Filter Controls -->
+                <div class="filter-controls">
+                    <input type="text" id="userIdFilter" placeholder="按用户 ID 筛选">
+                    <button onclick="filterEvents()">🔍 筛选</button>
+                    <button onclick="clearFilter()">✖ 清除</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="eventsTable">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>事件</th>
+                                <th style="min-width: 280px;">用户 ID</th>
+                                <th>URL</th>
+                                <th>详情</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+                    <button id="prevPage" onclick="changePage(-1)">← 上一页</button>
+                    <span id="pageInfo">第 1 页</span>
+                    <button id="nextPage" onclick="changePage(1)">下一页 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Journey Tab -->
+        <div id="journey-tab" class="tab-content">
+            <div class="card">
+                <h2>用户旅程分析</h2>
+
+                <div class="search-box">
+                    <input type="text" id="userIdInput" placeholder="输入用户 ID 或部分 ID">
+                    <button onclick="searchUsers()">🔍 搜索用户</button>
+                </div>
+
+                <!-- User Search Results -->
+                <div class="user-search-results" id="userSearchResults"></div>
+
+                <!-- User Journey Container -->
+                <div id="userJourneyContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

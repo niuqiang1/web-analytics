@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics SDK 测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .config-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .config-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .config-row label {
+            flex: 0 0 150px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .config-row input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .config-row input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: #007bff;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+        }
+
+        #logs {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .log-entry pre {
+            margin: 0;
+            white-space: pre-wrap;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Analytics SDK 测试页面</h1>
+            <p>测试无代码埋点 SDK 的各项功能</p>
+        </div>
+
+        <div class="content">
+            <!-- 配置面板 -->
+            <div class="section">
+                <h2>⚙️ SDK 配置</h2>
+                <div class="config-panel">
+                    <div class="config-row">
+                        <label>应用 ID:</label>
+                        <input type="text" id="appId" value="test-app" readonly>
+                    </div>
+                    <div class="config-row">
+                        <label>服务器地址:</label>
+                        <input type="text" id="serverUrl" value="http://localhost:3000/collect" readonly>
+                    </div>
+                    <div class="config-row">
+                        <label>数据加密:</label>
+                        <span class="status enabled" id="encryptStatus">已启用</span>
+                    </div>
+                    <div class="config-row">
+                        <label>自动追踪:</label>
+                        <span class="status enabled" id="autoTrackStatus">已启用</span>
+                    </div>
+                    <div class="config-row">
+                        <label>调试模式:</label>
+                        <span class="status enabled" id="debugStatus">已启用</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="section">
+                <h2>📈 统计信息</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="value" id="eventCount">0</div>
+                        <div class="label">已发送事件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="clickCount">0</div>
+                        <div class="label">点击事件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="errorCount">0</div>
+                        <div class="label">错误事件</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" id="pageviewCount">0</div>
+                        <div class="label">页面浏览</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试按钮 -->
+            <div class="section">
+                <h2>🧪 功能测试</h2>
+                <div class="btn-group">
+                    <button id="btn-click" class="btn btn-primary">📍 测试点击追踪</button>
+                    <button id="btn-error" class="btn btn-danger">❌ 触发错误</button>
+                    <button id="btn-promise-error" class="btn btn-danger">⚠️ Promise 错误</button>
+                    <button id="btn-pushstate" class="btn btn-success">🔄 路由切换</button>
+                    <button id="btn-custom" class="btn btn-info">✨ 自定义事件</button>
+                    <button id="btn-clear" class="btn btn-warning">🗑️ 清空日志</button>
+                </div>
+            </div>
+
+            <!-- 日志面板 -->
+            <div class="section">
+                <h2>📝 事件日志</h2>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { init } from './analytics-sdk/dist/analytics.esm.js';
+
+        // 统计计数器
+        let eventCount = 0;
+        let clickCount = 0;
+        let errorCount = 0;
+        let pageviewCount = 0;
+
+        // Mock sendBeacon/XHR 来捕获请求
+        const originalSendBeacon = navigator.sendBeacon;
+        navigator.sendBeacon = function (url, data) {
+            log('📤 Beacon 发送', { url, data });
+            eventCount++;
+            updateStats();
+            return true;
+        };
+
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function (method, url) {
+            this._url = url;
+            originalOpen.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.send = function (data) {
+            log('📤 XHR 发送', { url: this._url, data });
+            eventCount++;
+            updateStats();
+            originalSend.apply(this, arguments);
+        };
+
+        function log(msg, data) {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+
+            let content = `<strong>${new Date().toLocaleTimeString()} - ${msg}</strong>`;
+            if (data) {
+                if (data.data instanceof Blob) {
+                    content += `<pre>Blob: ${data.data.size} bytes, ${data.data.type}</pre>`;
+                    data.data.text().then(text => {
+                        const pre = document.createElement('pre');
+                        try {
+                            const parsed = JSON.parse(text);
+                            pre.textContent = JSON.stringify(parsed, null, 2);
+                            // 统计事件类型
+                            if (Array.isArray(parsed)) {
+                                parsed.forEach(event => {
+                                    if (event.event === 'click') clickCount++;
+                                    if (event.event === 'error') errorCount++;
+                                    if (event.event === 'pageview') pageviewCount++;
+                                });
+                                updateStats();
+                            }
+                        } catch (e) {
+                            pre.textContent = text;
+                        }
+                        entry.appendChild(pre);
+                    });
+                } else if (typeof data === 'object') {
+                    content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    try {
+                        const parsed = JSON.parse(data);
+                        content += `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+                    } catch (e) {
+                        content += `<pre>${data}</pre>`;
+                    }
+                }
+            }
+            entry.innerHTML = content;
+            logs.insertBefore(entry, logs.firstChild);
+        }
+
+        function updateStats() {
+            document.getElementById('eventCount').textContent = eventCount;
+            document.getElementById('clickCount').textContent = clickCount;
+            document.getElementById('errorCount').textContent = errorCount;
+            document.getElementById('pageviewCount').textContent = pageviewCount;
+        }
+
+        // 初始化 SDK
+        const config = {
+            appId: 'test-app',
+            serverUrl: 'http://localhost:3000/collect',
+            debug: true,
+            encrypt: true,
+            autoTrack: true,
+            bufferSize: 1,
+            flushInterval: 1000
+        };
+
+        const tracker = init(config);
+
+        console.log('✅ Tracker 已初始化:', tracker);
+        log('✅ SDK 初始化成功', config);
+
+        // 更新配置显示
+        document.getElementById('encryptStatus').textContent = config.encrypt ? '已启用' : '已禁用';
+        document.getElementById('encryptStatus').className = config.encrypt ? 'status enabled' : 'status disabled';
+        document.getElementById('autoTrackStatus').textContent = config.autoTrack ? '已启用' : '已禁用';
+        document.getElementById('autoTrackStatus').className = config.autoTrack ? 'status enabled' : 'status disabled';
+        document.getElementById('debugStatus').textContent = config.debug ? '已启用' : '已禁用';
+        document.getElementById('debugStatus').className = config.debug ? 'status enabled' : 'status disabled';
+
+        // 事件监听器
+        document.getElementById('btn-click').addEventListener('click', () => {
+            log('🖱️ 点击测试按钮', { action: 'manual_click_test' });
+        });
+
+        document.getElementById('btn-error').addEventListener('click', () => {
+            log('⚠️ 即将触发错误...', null);
+            setTimeout(() => {
+                throw new Error('这是一个测试错误 - 运行时错误');
+            }, 100);
+        });
+
+        document.getElementById('btn-promise-error').addEventListener('click', () => {
+            log('⚠️ 即将触发 Promise 错误...', null);
+            setTimeout(() => {
+                Promise.reject(new Error('这是一个测试错误 - Promise Rejection'));
+            }, 100);
+        });
+
+        document.getElementById('btn-pushstate').addEventListener('click', () => {
+            const newPath = '/test-path-' + Math.floor(Math.random() * 1000);
+            history.pushState({}, '', newPath);
+            log('🔄 路由已切换', { newPath });
+        });
+
+        document.getElementById('btn-custom').addEventListener('click', () => {
+            const customData = {
+                action: 'custom_event_test',
+                timestamp: Date.now(),
+                randomValue: Math.random()
+            };
+            tracker.track('custom_event', customData);
+            log('✨ 自定义事件已发送', customData);
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            document.getElementById('logs').innerHTML = '';
+            eventCount = 0;
+            clickCount = 0;
+            errorCount = 0;
+            pageviewCount = 0;
+            updateStats();
+            log('🗑️ 日志已清空', null);
+        });
+
+        // 初始页面浏览事件
+        pageviewCount = 1;
+        updateStats();
+    </script>
+</body>
+
+</html>

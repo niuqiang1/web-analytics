@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Platform - Select App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .app-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .app-card {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-card:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .app-info {
+            flex: 1;
+        }
+
+        .app-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .app-stats {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .app-arrow {
+            font-size: 24px;
+            color: #667eea;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .app-card:hover .app-arrow {
+            opacity: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 数据分析平台</h1>
+        <p class="subtitle">选择一个应用查看分析数据</p>
+
+        <div id="appList" class="app-list">
+            <div class="loading">加载应用中...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadApps() {
+            try {
+                const response = await fetch('/api/apps');
+                const apps = await response.json();
+
+                const appList = document.getElementById('appList');
+                appList.innerHTML = '';
+
+                if (apps.length === 0) {
+                    appList.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <p>未找到应用</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                apps.forEach(app => {
+                    const card = document.createElement('div');
+                    card.className = 'app-card';
+                    card.onclick = () => {
+                        window.location.href = `/dashboard.html?appId=${encodeURIComponent(app.app_id)}`;
+                    };
+
+                    card.innerHTML = `
+                        <div class="app-info">
+                            <div class="app-name">${app.app_id}</div>
+                            <div class="app-stats">
+                                ${app.total_events.toLocaleString('zh-CN')} 个事件 | 
+                                ${app.total_users.toLocaleString('zh-CN')} 个用户 | 
+                                最后活动: ${new Date(app.last_activity).toLocaleString('zh-CN')}
+                            </div>
+                        </div>
+                        <div class="app-arrow">→</div>
+                    `;
+
+                    appList.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Failed to load apps:', error);
+                document.getElementById('appList').innerHTML = `
+                    <div class="empty-state">
+                        <p>加载应用失败</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadApps);
+    </script>
+</body>
+
+</html>

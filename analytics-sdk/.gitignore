@@ -1,0 +1,37 @@
+.DS_Store
+.env
+node_modules
+/screenshots
+/dist
+/fund
+/fund.zip
+dist.zip
+dist_electron
+
+# local env files
+.env.local
+.env.*.local
+yarn.lock
+/yarn.lock
+yarn-error.log
+/yarn-error.log
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pnpm-lock.yaml
+ 
+
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+/components.d.ts
+/.codebuddy
