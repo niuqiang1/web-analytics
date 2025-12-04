@@ -1,19 +1,57 @@
 {
   "name": "codeless-analytics-sdk",
   "version": "1.0.0",
-  "description": "A lightweight codeless analytics SDK",
+  "description": "一个轻量级、无代码埋点的前端分析 SDK。自动追踪用户行为，支持数据加密、Vue 集成。A lightweight codeless analytics SDK with auto-tracking, encryption, and Vue integration.",
   "main": "dist/analytics.umd.js",
   "module": "dist/analytics.esm.js",
+  "types": "index.d.ts",
+  "files": [
+    "dist",
+    "core",
+    "events",
+    "integrations",
+    "utils",
+    "index.js",
+    "index.d.ts",
+    "README.md",
+    "VUE3_GUIDE.md",
+    "VUE3_ESM_USAGE.md"
+  ],
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "analytics",
+    "tracking",
     "codeless",
-    "tracking"
+    "auto-tracking",
+    "user-behavior",
+    "event-tracking",
+    "web-analytics",
+    "data-encryption",
+    "vue",
+    "vue3",
+    "javascript",
+    "frontend",
+    "monitoring",
+    "error-tracking",
+    "pageview",
+    "click-tracking"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "hhz <niuqiangooo@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niuqiang1/web-analytics/tree/main/analytics-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/niuqiang1/web-analytics/issues"
+  },
+  "homepage": "https://github.com/niuqiang1/web-analytics/blob/main/README.md",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^13.3.0",

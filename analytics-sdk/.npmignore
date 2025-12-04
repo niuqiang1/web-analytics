@@ -1,0 +1,54 @@
+# 开发文件
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+.env
+.env.local
+
+# 测试文件
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+
+# 构建工具
+node_modules/
+.cache/
+.vscode/
+.idea/
+
+# 源码（只发布构建后的文件）
+# 注意：我们需要保留源码目录，因为有些用户可能需要直接引用
+# 如果只想发布 dist，可以取消下面的注释
+# core/
+# events/
+# integrations/
+# utils/
+
+# 配置文件
+.eslintrc*
+.prettierrc*
+rollup.config.js
+tsconfig.json
+
+# 文档草稿
+*.draft.md
+CHANGELOG.draft.md
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# 其他
+screenshots/
+examples/
+demo/
