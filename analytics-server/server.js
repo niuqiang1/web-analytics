@@ -1,3 +1,6 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -60,6 +63,12 @@ async function sendFeishuAlert(event) {
         console.log('Message payload:', JSON.stringify(message, null, 2));
 
         const data = JSON.stringify(message);
+
+        console.log('Feishu webhook URL:', config.feishu.webhookUrl);
+        if (!config.feishu.webhookUrl) {
+            console.log('Feishu Webhook URL not configured, skipping alert');
+            return;
+        }
         const url = new URL(config.feishu.webhookUrl);
 
         const options = {
