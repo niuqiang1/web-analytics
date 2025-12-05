@@ -196,6 +196,45 @@ this.$analytics.track('purchase', {
 });
 ```
 
+### 用户识别
+
+使用 `identify()` 方法识别用户身份（通常在用户登录后调用）：
+
+```javascript
+// 识别用户
+analytics.identify('user-123');
+
+// 识别用户并添加属性
+analytics.identify('user-123', {
+  name: '张三',
+  email: 'zhangsan@example.com',
+  plan: 'premium'
+});
+
+// 用户登出时重置身份
+analytics.reset();
+```
+
+**完整示例**：
+
+```javascript
+// 登录成功后
+function onLoginSuccess(user) {
+  analytics.identify(user.id, {
+    name: user.name,
+    email: user.email,
+    vip_level: user.vipLevel
+  });
+}
+
+// 登出时
+function onLogout() {
+  analytics.reset();
+}
+```
+
+详细的 identify 使用指南请查看 [IDENTIFY_GUIDE.md](./IDENTIFY_GUIDE.md)。
+
 ### 禁用自动追踪
 
 如果只想手动追踪事件：

@@ -22,6 +22,10 @@ export interface AnalyticsOptions {
 export interface Tracker {
     /** 追踪自定义事件 */
     track(eventName: string, properties?: Record<string, any>): void;
+    /** 识别用户 */
+    identify(userId: string, traits?: Record<string, any>): void;
+    /** 重置用户身份（登出） */
+    reset(): void;
     /** 手动发送缓冲区中的事件 */
     flush(): void;
 }
