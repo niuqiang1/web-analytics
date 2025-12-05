@@ -1,6 +1,6 @@
 {
   "name": "codeless-analytics-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "一个轻量级、无代码埋点的前端分析 SDK。自动追踪用户行为，支持数据加密、Vue 集成。A lightweight codeless analytics SDK with auto-tracking, encryption, and Vue integration.",
   "main": "dist/analytics.umd.js",
   "module": "dist/analytics.esm.js",
