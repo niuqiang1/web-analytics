@@ -21,6 +21,8 @@ class Tracker {
         // Bind methods
         this.track = this.track.bind(this);
         this.flush = this.flush.bind(this);
+        this.identify = this.identify.bind(this);
+        this.reset = this.reset.bind(this);
 
         // Flush on page unload
         window.addEventListener('unload', this.flush);

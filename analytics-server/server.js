@@ -275,6 +275,21 @@ app.get('/api/stats', (req, res) => {
     const totalUsers = db.prepare(`SELECT COUNT(*) as count FROM users`).get();
     const totalSessions = db.prepare(`SELECT COUNT(*) as count FROM sessions`).get();
 
+    // Error statistics
+    const errorWhereClause = appId ? "WHERE event_name = 'error' AND app_id = ?" : "WHERE event_name = 'error'";
+    const totalErrors = db.prepare(`SELECT COUNT(*) as count FROM events ${errorWhereClause}`).get(...params);
+
+    // Recent errors (last 5)
+    const recentErrors = db.prepare(`
+        SELECT * FROM events
+        ${errorWhereClause}
+        ORDER BY timestamp DESC
+        LIMIT 5
+    `).all(...params).map(row => ({
+        ...row,
+        properties: JSON.parse(row.properties)
+    }));
+
     const eventsByType = db.prepare(`
     SELECT event_name, COUNT(*) as count
     FROM events
@@ -296,6 +311,8 @@ app.get('/api/stats', (req, res) => {
         totalEvents: totalEvents.count,
         totalUsers: totalUsers.count,
         totalSessions: totalSessions.count,
+        totalErrors: totalErrors.count,
+        recentErrors: recentErrors,
         eventsByType,
         topPages
     });
@@ -324,6 +341,62 @@ app.get('/api/users/search', (req, res) => {
 
     const users = stmt.all(`%${searchTerm}%`);
     res.json(users);
+});
+
+// API: Get users list with app_id filtering
+app.get('/api/users', (req, res) => {
+    const appId = req.query.appId;
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
+
+    let query = `
+        SELECT 
+            u.distinct_id,
+            u.first_seen,
+            u.last_seen,
+            u.total_events,
+            u.total_sessions,
+            GROUP_CONCAT(DISTINCT e.app_id) as app_ids
+        FROM users u
+        LEFT JOIN events e ON u.distinct_id = e.distinct_id AND e.app_id IS NOT NULL
+    `;
+
+    let countQuery = `SELECT COUNT(*) as total FROM users u`;
+    let params = [];
+    let countParams = [];
+
+    if (appId) {
+        query += `
+            WHERE u.distinct_id IN (
+                SELECT DISTINCT distinct_id 
+                FROM events 
+                WHERE app_id = ?
+            )
+        `;
+        params.push(appId);
+
+        countQuery += `
+            WHERE u.distinct_id IN (
+                SELECT DISTINCT distinct_id 
+                FROM events 
+                WHERE app_id = ?
+            )
+        `;
+        countParams.push(appId);
+    }
+
+    query += ' GROUP BY u.distinct_id ORDER BY u.last_seen DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const users = db.prepare(query).all(...params);
+    const total = db.prepare(countQuery).get(...countParams).total;
+
+    res.json({
+        users,
+        total,
+        page: Math.floor(offset / limit) + 1,
+        pageSize: limit
+    });
 });
 
 app.listen(port, () => {

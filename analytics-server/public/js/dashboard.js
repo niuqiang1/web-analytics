@@ -21,6 +21,11 @@ function switchTab(tabName) {
 
     // Add active class to clicked button
     event.target.classList.add('active');
+
+    // Load data for specific tabs
+    if (tabName === 'users') {
+        loadUsersList(1);
+    }
 }
 
 // Load statistics
@@ -34,6 +39,29 @@ async function loadStats() {
         document.getElementById('totalEvents').textContent = stats.totalEvents.toLocaleString();
         document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
         document.getElementById('totalSessions').textContent = stats.totalSessions.toLocaleString();
+        document.getElementById('totalErrors').textContent = stats.totalErrors.toLocaleString();
+
+        // Check for new errors (errors in last 5 minutes)
+        const hasNewErrors = stats.recentErrors.some(error => {
+            const errorTime = new Date(error.timestamp);
+            const now = new Date();
+            return (now - errorTime) < 5 * 60 * 1000; // 5 minutes
+        });
+
+        // Show error badge if there are new errors
+        const errorCard = document.getElementById('errorStatCard');
+        const newErrorBadge = document.getElementById('newErrorBadge');
+
+        if (hasNewErrors) {
+            errorCard.classList.add('has-new-error');
+            newErrorBadge.style.display = 'block';
+        } else {
+            errorCard.classList.remove('has-new-error');
+            newErrorBadge.style.display = 'none';
+        }
+
+        // Display recent errors
+        updateRecentErrors(stats.recentErrors);
 
         // Update event types chart
         updateEventTypesChart(stats.eventsByType);
@@ -99,6 +127,47 @@ function updateTopPages(topPages) {
 }
 
 // Pagination state
+
+// Update recent errors
+function updateRecentErrors(errors) {
+    const card = document.getElementById('recentErrorsCard');
+    const container = document.getElementById('recentErrorsList');
+    
+    if (errors.length === 0) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    card.style.display = 'block';
+    container.innerHTML = '';
+    
+    errors.forEach(error => {
+        const item = document.createElement('div');
+        item.className = 'error-item';
+        const time = new Date(error.timestamp).toLocaleString('zh-CN');
+        const props = error.properties;
+        
+        item.innerHTML = `
+            <div class="error-time">${time}</div>
+            <div class="error-message">
+                <strong>${props.message || 'Unknown Error'}</strong>
+            </div>
+            <div class="error-details">
+                <span>👤 ${error.distinct_id}</span>
+                <span>🔗 ${error.url || 'N/A'}</span>
+            </div>
+        `;
+        
+        // Click to view user journey
+        item.onclick = () => {
+            switchTab('journey');
+            document.getElementById('userIdInput').value = error.distinct_id;
+            loadUserJourney(error.distinct_id);
+        };
+        
+        container.appendChild(item);
+    });
+}
 let currentPage = 1;
 let pageSize = 20;
 let currentFilter = '';
@@ -135,7 +204,7 @@ async function loadRecentEvents(page = 1) {
                 <td><code>${event.distinct_id}</code></td>
                 <td>${event.url}</td>
                 <td>
-                    ${props.tag ? `<span>🏷️ ${props.tag}${props.id ? '#' + props.id : ''}${props.className ? '.' + props.className.split(' ')[0] : ''}</span>` : ''}
+                    ${props.tag ? `<span>🏷️ ${props.tag}${props.id ? '#' + props.id : ''}${props.className && typeof props.className === 'string' ? '.' + props.className.split(' ')[0] : ''}</span>` : ''}
                     ${props.text ? `<span>📝 ${props.text.substring(0, 50)}${props.text.length > 50 ? '...' : ''}</span>` : ''}
                     ${props.message ? `<span style="color: #dc3545; font-weight: 600;">⚠️ ${props.message.substring(0, 50)}${props.message.length > 50 ? '...' : ''}</span>` : ''}
                 </td>
@@ -243,14 +312,36 @@ async function loadUserJourney(userId) {
         const userInfo = document.createElement('div');
         userInfo.className = 'user-info';
         userInfo.innerHTML = `
-            <h3>用户信息</h3>
-            <p><strong>用户 ID:</strong> <code>${journey.user.distinct_id}</code></p>
-            <p><strong>首次访问:</strong> ${new Date(journey.user.first_seen).toLocaleString('zh-CN')}</p>
-            <p><strong>最后访问:</strong> ${new Date(journey.user.last_seen).toLocaleString('zh-CN')}</p>
-            <p><strong>总事件数:</strong> ${journey.user.total_events}</p>
-            <p><strong>总会话数:</strong> ${journey.user.total_sessions}</p>
+            <div class="user-profile-header">
+                <div class="user-avatar-placeholder">
+                    ${journey.user.distinct_id.substring(0, 2).toUpperCase()}
+                </div>
+                <div class="user-identity">
+                    <div class="user-id-code">${journey.user.distinct_id}</div>
+                    <div class="user-id-label">用户 ID</div>
+                </div>
+            </div>
+            <div class="user-stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">首次访问</div>
+                    <div class="stat-value small">${new Date(journey.user.first_seen).toLocaleString('zh-CN')}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">最后访问</div>
+                    <div class="stat-value small">${new Date(journey.user.last_seen).toLocaleString('zh-CN')}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">总事件数</div>
+                    <div class="stat-value">${journey.user.total_events}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">总会话数</div>
+                    <div class="stat-value">${journey.user.total_sessions}</div>
+                </div>
+            </div>
         `;
         container.appendChild(userInfo);
+
 
         // Events timeline with pagination
         renderTimeline(journey.events, container);
@@ -340,7 +431,7 @@ function renderTimelinePage(events, timeline, page) {
                     ${props.tag ? `
                         <div class="event-details-item">
                             <strong>Element:</strong>
-                            <span>${props.tag}${props.id ? '#' + props.id : ''}${props.className ? '.' + props.className.split(' ')[0] : ''}</span>
+                            <span>${props.tag}${props.id ? '#' + props.id : ''}${props.className && typeof props.className === 'string' ? '.' + props.className.split(' ')[0] : ''}</span>
                         </div>
                     ` : ''}
                     ${props.text ? `
@@ -411,6 +502,89 @@ function filterTimelineEvents(type) {
 
     currentTimelinePage = 1;
     renderTimelinePage(filteredEvents, timeline, 1);
+}
+
+// Users list pagination state
+let currentUsersPage = 1;
+const usersPageSize = 20;
+let totalUsers = 0;
+
+// Load users list
+async function loadUsersList(page = 1) {
+    currentUsersPage = page;
+
+    try {
+        const url = `/api/users?limit=${usersPageSize}&offset=${(page - 1) * usersPageSize}${currentAppId ? '&appId=' + encodeURIComponent(currentAppId) : ''}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        totalUsers = data.total || 0;
+
+        const container = document.getElementById('usersContainer');
+        container.innerHTML = '';
+
+        if (data.users.length === 0) {
+            container.innerHTML = '<p style="color: #666; padding: 20px; text-align: center;">暂无用户数据</p>';
+        } else {
+            data.users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.onclick = () => viewUserDetail(user.distinct_id);
+
+                const firstSeen = new Date(user.first_seen).toLocaleDateString('zh-CN');
+                const lastSeen = new Date(user.last_seen).toLocaleString('zh-CN');
+                const appIds = user.app_ids ? user.app_ids.split(',') : [];
+
+                card.innerHTML = `
+                    <div class="user-id">${user.distinct_id}</div>
+                    <div class="user-stats">
+                        <span>📊 ${user.total_events || 0} 事件</span>
+                        <span>🔗 ${user.total_sessions || 0} 会话</span>
+                    </div>
+                    <div class="user-time">
+                        <div>首次访问: ${firstSeen}</div>
+                        <div>最后访问: ${lastSeen}</div>
+                    </div>
+                    ${appIds.length > 0 ? `<div class="user-apps">${appIds.map(id => `<span class="app-badge">${id}</span>`).join('')}</div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Update pagination
+        updateUsersPaginationControls();
+    } catch (error) {
+        console.error('Failed to load users list:', error);
+        const container = document.getElementById('usersContainer');
+        container.innerHTML = '<p style="color: #dc3545; padding: 20px; text-align: center;">加载用户列表失败</p>';
+    }
+}
+
+// Update users pagination controls
+function updateUsersPaginationControls() {
+    const totalPages = Math.ceil(totalUsers / usersPageSize) || 1;
+    const pageInfo = document.getElementById('usersPageInfo');
+
+    if (totalPages > 1) {
+        pageInfo.textContent = `第 ${currentUsersPage} 页，共 ${totalPages} 页 (总共 ${totalUsers} 个用户)`;
+    } else {
+        pageInfo.textContent = `共 ${totalUsers} 个用户`;
+    }
+
+    document.getElementById('usersPrevPage').disabled = currentUsersPage === 1;
+    document.getElementById('usersNextPage').disabled = currentUsersPage >= totalPages || totalUsers === 0;
+}
+
+// Change users page
+function changeUsersPage(delta) {
+    loadUsersList(currentUsersPage + delta);
+}
+
+// View user detail
+function viewUserDetail(userId) {
+    switchTab('journey');
+    document.getElementById('userIdInput').value = userId;
+    loadUserJourney(userId);
 }
 
 // Get relative time string
