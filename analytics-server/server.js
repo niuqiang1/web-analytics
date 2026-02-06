@@ -272,8 +272,14 @@ app.get('/api/stats', (req, res) => {
     const params = appId ? [appId] : [];
 
     const totalEvents = db.prepare(`SELECT COUNT(*) as count FROM events ${whereClause}`).get(...params);
-    const totalUsers = db.prepare(`SELECT COUNT(*) as count FROM users`).get();
-    const totalSessions = db.prepare(`SELECT COUNT(*) as count FROM sessions`).get();
+    const totalUsers = db.prepare(`
+        SELECT COUNT(*) as count FROM users
+        ${appId ? 'WHERE distinct_id IN (SELECT DISTINCT distinct_id FROM events WHERE app_id = ?)' : ''}
+    `).get(...params);
+    const totalSessions = db.prepare(`
+        SELECT COUNT(*) as count FROM sessions
+        ${appId ? 'WHERE session_id IN (SELECT DISTINCT session_id FROM events WHERE app_id = ?)' : ''}
+    `).get(...params);
 
     // Error statistics
     const errorWhereClause = appId ? "WHERE event_name = 'error' AND app_id = ?" : "WHERE event_name = 'error'";
